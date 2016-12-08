@@ -30,11 +30,6 @@ app.get('/search', (req, res)=>{
     'collectionName':'collectionName',
     'episodes':[]
   }
-  var episodeList = {
-    'title':'title',
-    'description':'description',
-    'enclosure':'enclosure[0].$'
-  }
 
   var searchQuery = 'https://itunes.apple.com/search?term=npr'
 
@@ -70,6 +65,11 @@ app.get('/search', (req, res)=>{
           // res.send(result.rss.channel[0].item[0].enclosure[0].$.url)//fiile path to each unique audio file and corresponding url.
           // targetObj['episodes']=result.rss.channel[0].item
           for(var i=0;i<result.rss.channel[0].item.length;i++){
+            var episodeList = {
+              'title':'title',
+              'description':'description',
+              'enclosure':'enclosure[0].$'
+            }
             // console.log('i ran! expect title to be and episodeList to be: ',result.rss.channel[0].item[i].title[0],episodeList)
             episodeList['title']=result.rss.channel[0].item[i].title[0]
             // console.log('i ran! expect title to be and episodeList to be: ',result.rss.channel[0].item[i].title[0],episodeList)
