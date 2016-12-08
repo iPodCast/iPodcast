@@ -23,11 +23,18 @@ app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x
 app.get('/search', (req, res)=>{
   console.log('expect req.body to equal obj with property searchQuery and url',req.body)
   console.log('expect req.body.searchQuery to equal url',req.body.searchQuery)
-  var searchQuery = 'https://itunes.apple.com/search?term=the+tim+ferris+show'//pass in searchQuery
+  // var searchQuery = 'https://itunes.apple.com/search?term=the+tim+ferris+show'//pass in searchQuery
+  var targetObj = {
+    'artworkUrl60':'artworkUrl60',
+    'artistName':'artistName',
+    'collectionName':'collectionName',
+    'episodes':'episodes'
+  }
+  var searchQuery = 'https://itunes.apple.com/search?term=npr'
 
   request(searchQuery, function (error, response, body) {//call the iTunes API
   if (error){
-    console.log('hit error in first searchQuery when calling iTunes API',error)
+  console.log('hit error in first searchQuery when calling iTunes API',error)
   }
   console.log('expect body to be jsonObject from iTunes API',JSON.stringify(typeof body))
 
@@ -36,6 +43,10 @@ app.get('/search', (req, res)=>{
 
     var feedUrl = turnStringToObject.results[0].feedUrl//get feedUrl, go get XML file
     console.log('expect feedUrl to equal link to XML file',feedUrl)
+
+    targetObj['artworkUrl60']=turnStringToObject.results[0].artworkUrl60
+    targetObj['artistName']=turnStringToObject.results[0].artistName
+    targetObj['collectionName']=turnStringToObject.results[0].collectionName
 
     request(feedUrl, function(error, response, body){
     if (error){
@@ -49,7 +60,11 @@ app.get('/search', (req, res)=>{
     var parser = new xml2js.Parser();
     parser.parseString(returnedXMLFile, function (err, result) {//pass it intoParseString
     console.log('expect result to be parsedXML file as JSON',result)
-          res.send(result.rss.channel[0].item[1])
+          // res.send(JSON.stringify(result.rss.channel[0].item.length))//returns 208
+          // res.send(result.rss.channel[0].item[0].enclosure[0].$.url)//fiile path to each unique audio file and corresponding url.
+          targetObj['episodes']=result.rss.channel[0].item
+          // res.send(result.rss.channel[0].item)
+          res.send(targetObj)
         });
       })
   })
