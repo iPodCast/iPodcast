@@ -28,8 +28,14 @@ app.get('/search', (req, res)=>{
     'artworkUrl60':'artworkUrl60',
     'artistName':'artistName',
     'collectionName':'collectionName',
-    'episodes':'episodes'
+    'episodes':[]
   }
+  var episodeList = {
+    'title':'title',
+    'description':'description',
+    'enclosure':'enclosure[0].$'
+  }
+
   var searchQuery = 'https://itunes.apple.com/search?term=npr'
 
   request(searchQuery, function (error, response, body) {//call the iTunes API
@@ -62,9 +68,28 @@ app.get('/search', (req, res)=>{
     console.log('expect result to be parsedXML file as JSON',result)
           // res.send(JSON.stringify(result.rss.channel[0].item.length))//returns 208
           // res.send(result.rss.channel[0].item[0].enclosure[0].$.url)//fiile path to each unique audio file and corresponding url.
-          targetObj['episodes']=result.rss.channel[0].item
-          // res.send(result.rss.channel[0].item)
-          res.send(targetObj)
+          // targetObj['episodes']=result.rss.channel[0].item
+          for(var i=0;i<result.rss.channel[0].item.length;i++){
+            // console.log('i ran! expect title to be and episodeList to be: ',result.rss.channel[0].item[i].title[0],episodeList)
+            episodeList['title']=result.rss.channel[0].item[i].title[0]
+            // console.log('i ran! expect title to be and episodeList to be: ',result.rss.channel[0].item[i].title[0],episodeList)
+
+            // console.log('i ran! expect descript to be: ',result.rss.channel[0].item[i].description[0],episodeList)
+            episodeList['description']=result.rss.channel[0].item[i].description[0]
+            // console.log('i ran! expect descript to be: ',result.rss.channel[0].item[i].description[0],episodeList)
+
+            // console.log('BEFORE i ran! expect enclosure to be: ',result.rss.channel[0].item[i].enclosure[0].$,episodeList)
+            episodeList['enclosure']=result.rss.channel[0].item[i].enclosure[0].$
+            // console.log('AFTER i ran! expect enclosure to be: ',result.rss.channel[0].item[i].enclosure[0].$,episodeList)
+
+            console.log('BEFORE expect complete episodeList',episodeList)
+            console.log('BEFORE expect complete targetObj',targetObj)
+            targetObj['episodes'].push(episodeList)
+            console.log('AFTER expect complete targetObj',targetObj)
+          }
+
+          // res.send(result.rss.channel[0].item[0].enclosure[0].$)
+          res.send(JSON.stringify(targetObj))
         });
       })
   })
