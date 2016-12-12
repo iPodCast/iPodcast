@@ -6,6 +6,7 @@ var fs = require('fs');
 var xml2js = require('xml2js')
 var $ = require('jquery')
 var data = require('./db.js')
+var _ = require('underscore')
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -61,20 +62,19 @@ app.get('/search', (req, res)=>{
   var turnStringToObject = JSON.parse(body)
   console.log('turnStringToObject.results',turnStringToObject.results)
 
-  if(turnStringToObject.resultCount === 0){
+  var answer = _.filter(turnStringToObject.results, function(param){
+    return param.kind==='podcast'
+  })
+
+  if (answer.length===0){
     res.end('didnt work, try again.')
   } else {
+    var targetPodcast={}
+    targetPodcast=answer[0]
 
-  var targetPodcast={}
+    console.log('this is targetPodcast',targetPodcast)
 
   //returns first podcast identified in result from iTunes API request
-  var filteredForPodcasts = turnStringToObject.results
-  for(var i=0;i<filteredForPodcasts.length;i++){
-    if(filteredForPodcasts[i].kind==="podcast"){
-      targetPodcast=filteredForPodcasts[i]
-      break;
-    }
-  }
 
     //populate targetObj with information from iTunes and also get feedUrl, to go get XML file with all our target audio files.
     var feedUrl = targetPodcast.feedUrl
@@ -109,7 +109,7 @@ app.get('/search', (req, res)=>{
           res.send(JSON.stringify(targetObj))
         });
       })
-    }
+    }//else
   })
 })
 
