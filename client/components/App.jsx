@@ -68,6 +68,11 @@ class App extends React.Component {
           })
         },
         error: function(err){
+          self.setState({
+            podcastsFromSearch:[],
+            inputVal: ' ',
+            submittedSearch:true
+          })
           console.log('it didnt work')
         }
       })

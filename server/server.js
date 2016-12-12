@@ -61,6 +61,10 @@ app.get('/search', (req, res)=>{
   var turnStringToObject = JSON.parse(body)
   console.log('turnStringToObject.results',turnStringToObject.results)
 
+  if(turnStringToObject.resultCount === 0){
+    res.end('didnt work, try again.')
+  } else {
+
   var targetPodcast={}
 
   //returns first podcast identified in result from iTunes API request
@@ -105,6 +109,7 @@ app.get('/search', (req, res)=>{
           res.send(JSON.stringify(targetObj))
         });
       })
+    }
   })
 })
 
