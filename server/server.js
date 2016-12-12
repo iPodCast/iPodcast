@@ -39,17 +39,9 @@ app.delete('/main', function(req,res){
 })
 
 app.get('/search', (req, res)=>{
-  console.log('expect req.body to equal obj with property searchQuery and url', req.query.test)
+  console.log('expect req.query to equal obj with property searchQuery', req.query.test)
 
-  //object we will build and return at end of this get request.
-  var targetObj = {
-    'artworkUrl60':'artworkUrl60',
-    'artistName':'artistName',
-    'collectionName':'collectionName',
-    'episodes':[]
-  }
-
-  //input parameter in our GET request
+  //url we will use for our GET request to the iTunesSearchAPI
   var searchQuery = req.query.test
 
   //call the iTunes API
@@ -58,31 +50,37 @@ app.get('/search', (req, res)=>{
   console.log('hit error in first searchQuery when calling iTunes API',error)
   }
 
-  //need to filter through this. return first that is a podcast?
-  var turnStringToObject = JSON.parse(body)
-  console.log('turnStringToObject.results',turnStringToObject.results)
+  //body returned from call to iTunesSearchAPI
+  var iTunesSearchBody = JSON.parse(body)
+  console.log('iTunesSearchBody.results',iTunesSearchBody.results)
 
-  var answer = _.filter(turnStringToObject.results, function(param){
+  //filter only for podcasts found in body returned from call to iTunesSearchAPI
+  var filterForPodcasts = _.filter(iTunesSearchBody.results, function(param){
     return param.kind==='podcast'
   })
+  console.log('expect filterForPodcasts to be array',filterForPodcasts)
 
-  if (answer.length===0){
+  if (filterForPodcasts.length===0){
     res.end('didnt work, try again.')
   } else {
-    var targetPodcast={}
-    targetPodcast=answer[0]
 
-    console.log('this is targetPodcast',targetPodcast)
+    //this is the podcast object we want to build and return
+    var podcast = {
+      'artworkUrl60':'artworkUrl60',
+      'artistName':'artistName',
+      'collectionName':'collectionName',
+      'episodes':[]
+    }
 
-  //returns first podcast identified in result from iTunes API request
+    //populate podcast with properties from iTunesSearchAPI
+    podcast.artworkUrl60 = filterForPodcasts[0].artworkUrl60
+    podcast.artistName = filterForPodcasts[0].artistName
+    podcast.collectionName = filterForPodcasts[0].collectionName
 
-    //populate targetObj with information from iTunes and also get feedUrl, to go get XML file with all our target audio files.
-    var feedUrl = targetPodcast.feedUrl
-    targetObj['artworkUrl60']=targetPodcast.artworkUrl60
-    targetObj['artistName']=targetPodcast.artistName
-    targetObj['collectionName']=targetPodcast.collectionName
+    //this is the url we use to fetch audio files for podcasts from iTunesSearchAPI
+    var feedUrl = filterForPodcasts[0].feedUrl
 
-    //another Get request with feedUrl, link where all episodes are.
+    //get request with feedUrl to fetch episodes from podcast from iTunesSearchAPI
     request(feedUrl, function(error, response, body){
     if (error){
       console.log('hit error in second searchQuery when fetching XML file',error)
@@ -104,12 +102,12 @@ app.get('/search', (req, res)=>{
             episodeList['description']=result.rss.channel[0].item[i].description[0]
             episodeList['enclosure']=result.rss.channel[0].item[i].enclosure[0].$
 
-            targetObj['episodes'].push(episodeList)
+            podcast['episodes'].push(episodeList)
           }
-          res.send(JSON.stringify(targetObj))
+          res.send(JSON.stringify(podcast))
         });
       })
-    }//else
+    }
   })
 })
 

@@ -77,7 +77,6 @@ class App extends React.Component {
         }
       })
     }
-    var test = 'https://itunes.apple.com/search?term=the+tim+ferris+show'
     searchPodcasts(targetInput)
   }
 
